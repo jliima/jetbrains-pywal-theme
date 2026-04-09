@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.1.20"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
     id("org.jetbrains.intellij.platform") version "2.13.1"
 }
 
@@ -16,7 +16,7 @@ repositories {
 dependencies {
     intellijPlatform {
         // Target the oldest supported version installed on this machine
-        intellijIdeaUltimate("2024.2")
+        intellijIdeaUltimate("2026.1")
     }
 }
 
@@ -26,7 +26,7 @@ intellijPlatform {
         name = "Pywal Theme Reloader"
         version = providers.gradleProperty("pluginVersion").get()
         ideaVersion {
-            sinceBuild = "242"
+            sinceBuild = "261"
         }
     }
     buildSearchableOptions = false
