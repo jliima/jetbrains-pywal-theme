@@ -1,20 +1,30 @@
 package com.github.jliima.pywal.reload
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.databind.node.TextNode
+import com.intellij.ide.actions.QuickChangeLookAndFeel
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.UITheme
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfo
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.colors.impl.EditorColorsSchemeImpl
 import com.intellij.openapi.util.JDOMUtil
-import com.intellij.ide.actions.QuickChangeLookAndFeel
-import com.intellij.ide.ui.LafManager
-import com.intellij.ide.ui.UITheme
-import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfo
-import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import java.io.File
 
 object ThemeReloader {
     private val log = thisLogger()
+    private val mapper = ObjectMapper()
+
+    // Path to the ui-mapping.json in the project
+    private val mappingFile = File(
+        System.getProperty("user.home"),
+        "JetBrainsProjects/jetbrains-pywal-theme/theme/ui-mapping.json"
+    )
 
     fun reload(): Result<String> = runCatching {
         val messages = mutableListOf<String>()
@@ -26,21 +36,25 @@ object ThemeReloader {
     }
 
     private fun reloadUiTheme(): String? {
-        val jsonFile = File(System.getProperty("user.home"), ".cache/wal/colors-intellij-theme.json")
-        if (!jsonFile.exists()) {
-            log.warn("Theme JSON not found: $jsonFile")
-            return "theme JSON missing"
+        val colorsFile = File(System.getProperty("user.home"), ".cache/wal/colors.json")
+        if (!colorsFile.exists()) {
+            log.warn("colors.json not found: $colorsFile")
+            return "colors.json missing"
+        }
+        if (!mappingFile.exists()) {
+            log.warn("ui-mapping.json not found: $mappingFile")
+            return "ui-mapping.json missing"
         }
 
-        val theme = jsonFile.inputStream().use { stream ->
+        val themeJson = buildThemeJson(colorsFile, mappingFile)
+        val theme = themeJson.byteInputStream().use { stream ->
             @Suppress("UnstableApiUsage")
             UITheme.Companion.loadTempThemeFromJson(stream, "pywal-theme")
         }
 
-        // Explicit cast to UIThemeLookAndFeelInfo to resolve overload ambiguity
         val lafInfo: UIThemeLookAndFeelInfo = UIThemeLookAndFeelInfoImpl(theme)
         QuickChangeLookAndFeel.switchLafAndUpdateUI(LafManager.getInstance(), lafInfo, false)
-        log.info("Pywal UI theme reloaded from $jsonFile")
+        log.info("Pywal UI theme reloaded from $colorsFile + $mappingFile")
         return "UI theme reloaded"
     }
 
@@ -65,5 +79,37 @@ object ThemeReloader {
         colorsManager.setGlobalScheme(scheme)
         log.info("Pywal editor scheme reloaded from $iclsFile")
         return "editor scheme reloaded"
+    }
+
+    /**
+     * Combines colors.json palette with ui-mapping.json to produce a full IntelliJ theme JSON.
+     * The mapping's ui/icons sections reference color variable names (e.g. "border", "accent")
+     * which are resolved from the palette into a `colors` section.
+     */
+    private fun buildThemeJson(colorsFile: File, mappingFile: File): String {
+        // Build flat palette: name → #hex from special.* and colors.*
+        val colorsRoot = mapper.readTree(colorsFile)
+        val palette = mutableMapOf<String, String>()
+        colorsRoot.get("special")?.fields()?.forEach { (k, v) -> palette[k] = v.asText() }
+        colorsRoot.get("colors")?.fields()?.forEach { (k, v) -> palette[k] = v.asText() }
+
+        // Load mapping (contains name, dark, editorScheme, ui, icons)
+        val mapping = mapper.readTree(mappingFile) as ObjectNode
+
+        // Build colors section from full palette
+        val colorsNode = mapper.createObjectNode()
+        palette.forEach { (k, v) -> colorsNode.put(k, v) }
+
+        // Assemble final theme object: mapping fields + injected colors section
+        val theme = mapper.createObjectNode().apply {
+            put("name",         mapping.get("name").asText())
+            put("dark",         mapping.get("dark").asBoolean())
+            put("editorScheme", mapping.get("editorScheme").asText())
+            set<ObjectNode>("colors", colorsNode)
+            set<ObjectNode>("ui",     mapping.get("ui") as ObjectNode)
+            mapping.get("icons")?.let { set<ObjectNode>("icons", it as ObjectNode) }
+        }
+
+        return mapper.writeValueAsString(theme)
     }
 }
