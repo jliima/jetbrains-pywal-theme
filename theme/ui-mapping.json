@@ -117,13 +117,13 @@
       "borderColor": "border"
     },
     "FileColor": {
-      "Gray": "overlay",
-      "Rose": "error",
-      "Green": "success",
-      "Yellow": "warning",
-      "Blue": "accentSubtle",
-      "Violet": "accentSubtle",
-      "Orange": "warning"
+      "Gray": "grey2",
+      "Rose": "red2",
+      "Green": "green2",
+      "Yellow": "yellow2",
+      "Blue": "blue2",
+      "Violet": "blue3",
+      "Orange": "yellow3"
     },
     "InplaceRefactoringPopup.borderColor": "border",
     "Link": {

@@ -5,40 +5,40 @@
     <property name="originalScheme">pywal-color-scheme</property>
   </metaInfo>
   <colors>
-    <option name="ADDED_LINES_COLOR" value="{success}"/>
+    <option name="ADDED_LINES_COLOR" value="{green5}"/>
     <option name="ANNOTATIONS_COLOR" value="{foreground}"/>
     <option name="CARET_COLOR" value="{foreground}"/>
     <option name="CARET_ROW_COLOR" value="{highlightActive}"/>
     <option name="CONSOLE_BACKGROUND_KEY" value=""/>
-    <option name="DELETED_LINES_COLOR" value="{error}"/>
+    <option name="DELETED_LINES_COLOR" value="{red5}"/>
     <option name="DIFF_SEPARATORS_BACKGROUND" value="{overlay}"/>
     <option name="DIFF_SEPARATORS_TOP_BORDER" value="{overlay}"/>
     <option name="DOCUMENTATION_COLOR" value="{background}"/>
-    <option name="FILESTATUS_ADDED" value="{success}"/>
-    <option name="FILESTATUS_COPIED" value="{accent}"/>
-    <option name="FILESTATUS_DELETED" value="{error}"/>
-    <option name="FILESTATUS_HIJACKED" value="{warning}"/>
-    <option name="FILESTATUS_IDEA_FILESTATUS_DELETED_FROM_FILE_SYSTEM" value="{textDisabled}"/>
+    <option name="FILESTATUS_ADDED" value="{green5}"/>
+    <option name="FILESTATUS_COPIED" value="{green4}"/>
+    <option name="FILESTATUS_DELETED" value="{red5}"/>
+    <option name="FILESTATUS_HIJACKED" value="{yellow5}"/>
+    <option name="FILESTATUS_IDEA_FILESTATUS_DELETED_FROM_FILE_SYSTEM" value="{red4}"/>
     <option name="FILESTATUS_IDEA_FILESTATUS_IGNORED" value="{textDisabled}"/>
-    <option name="FILESTATUS_IDEA_SVN_FILESTATUS_EXTERNAL" value="{success}"/>
-    <option name="FILESTATUS_IDEA_SVN_FILESTATUS_OBSTRUCTED" value="{warning}"/>
-    <option name="FILESTATUS_IDEA_SVN_REPLACED" value="{success}"/>
+    <option name="FILESTATUS_IDEA_SVN_FILESTATUS_EXTERNAL" value="{green4}"/>
+    <option name="FILESTATUS_IDEA_SVN_FILESTATUS_OBSTRUCTED" value="{red4}"/>
+    <option name="FILESTATUS_IDEA_SVN_REPLACED" value="{green5}"/>
     <option name="FILESTATUS_IGNORE.PROJECT_VIEW.IGNORED" value="{textMuted}"/>
-    <option name="FILESTATUS_MERGED" value="{syntaxAnnotation}"/>
-    <option name="FILESTATUS_MODIFIED" value="{accent}"/>
-    <option name="FILESTATUS_NOT_CHANGED_IMMEDIATE" value="{syntaxType}"/>
-    <option name="FILESTATUS_NOT_CHANGED_RECURSIVE" value="{syntaxType}"/>
-    <option name="FILESTATUS_OBSOLETE" value="{warning}"/>
+    <option name="FILESTATUS_MERGED" value="{blue4}"/>
+    <option name="FILESTATUS_MODIFIED" value="{blue5}"/>
+    <option name="FILESTATUS_NOT_CHANGED_IMMEDIATE" value="{green3}"/>
+    <option name="FILESTATUS_NOT_CHANGED_RECURSIVE" value="{green3}"/>
+    <option name="FILESTATUS_OBSOLETE" value="{grey4}"/>
     <option name="FILESTATUS_SUPPRESSED" value="{textDisabled}"/>
-    <option name="FILESTATUS_SWITCHED" value="{syntaxString}"/>
-    <option name="FILESTATUS_UNKNOWN" value="{syntaxString}"/>
-    <option name="FILESTATUS_addedOutside" value="{warning}"/>
-    <option name="FILESTATUS_modifiedOutside" value="{error}"/>
+    <option name="FILESTATUS_SWITCHED" value="{yellow4}"/>
+    <option name="FILESTATUS_UNKNOWN" value="{yellow4}"/>
+    <option name="FILESTATUS_addedOutside" value="{green4}"/>
+    <option name="FILESTATUS_modifiedOutside" value="{blue4}"/>
     <option name="FOLDED_TEXT_BORDER_COLOR" value="{accent}"/>
     <option name="GUTTER_BACKGROUND" value="{backgroundAlt}"/>
-    <option name="IGNORED_ADDED_LINES_BORDER_COLOR" value="{success}"/>
-    <option name="IGNORED_DELETED_LINES_BORDER_COLOR" value="{error}"/>
-    <option name="IGNORED_MODIFIED_LINES_BORDER_COLOR" value="{warning}"/>
+    <option name="IGNORED_ADDED_LINES_BORDER_COLOR" value="{green3}"/>
+    <option name="IGNORED_DELETED_LINES_BORDER_COLOR" value="{red3}"/>
+    <option name="IGNORED_MODIFIED_LINES_BORDER_COLOR" value="{blue3}"/>
     <option name="INDENT_GUIDE" value="{border}"/>
     <option name="INFORMATION_HINT" value="{overlay}"/>
     <option name="INLINE_REFACTORING_SETTINGS_DEFAULT" value="{syntaxKeyword}"/>
@@ -48,12 +48,12 @@
     <option name="LINE_NUMBER_ON_CARET_ROW_COLOR" value="{foreground}"/>
     <option name="LOOKUP_COLOR" value="{background}"/>
     <option name="METHOD_SEPARATORS_COLOR" value="{border}"/>
-    <option name="MODIFIED_LINES_COLOR" value="{warning}"/>
-    <option name="MT_FILESTATUS_ADDED" value="{success}"/>
-    <option name="MT_FILESTATUS_DELETED" value="{error}"/>
+    <option name="MODIFIED_LINES_COLOR" value="{blue5}"/>
+    <option name="MT_FILESTATUS_ADDED" value="{green5}"/>
+    <option name="MT_FILESTATUS_DELETED" value="{red5}"/>
     <option name="MT_FILESTATUS_IDEA_FILESTATUS_IGNORED" value="{textDisabled}"/>
-    <option name="MT_FILESTATUS_MODIFIED" value="{accent}"/>
-    <option name="MT_FILESTATUS_modifiedOutside" value="{error}"/>
+    <option name="MT_FILESTATUS_MODIFIED" value="{blue5}"/>
+    <option name="MT_FILESTATUS_modifiedOutside" value="{blue4}"/>
     <option name="MT_IGNORE.PROJECT_VIEW.IGNORED" value="{textMuted}"/>
     <option name="MT_SUPPRESSED" value="{foreground}"/>
     <option name="NOTIFICATION_BACKGROUND" value="{highlightActive}"/>
@@ -77,17 +77,6 @@
     <option name="ScrollBar.Mac.thumbColor" value="{highlightActive}"/>
     <option name="ScrollBar.Mac.trackColor" value="{backgroundAlt}"/>
     <option name="ScrollBar.Transparent.hoverThumbBorderColor" value=""/>
-    <option name="ScrollBar.Transparent.hoverThumbColor" value=""/>
-    <option name="ScrollBar.Transparent.hoverTrackColor" value=""/>
-    <option name="ScrollBar.Transparent.thumbBorderColor" value=""/>
-    <option name="ScrollBar.Transparent.thumbColor" value=""/>
-    <option name="ScrollBar.Transparent.trackColor" value=""/>
-    <option name="ScrollBar.hoverThumbBorderColor" value=""/>
-    <option name="ScrollBar.hoverThumbColor" value=""/>
-    <option name="ScrollBar.hoverTrackColor" value=""/>
-    <option name="ScrollBar.thumbBorderColor" value=""/>
-    <option name="ScrollBar.thumbColor" value=""/>
-    <option name="ScrollBar.trackColor" value=""/>
     <option name="TAB_UNDERLINE" value="{accent}"/>
     <option name="TAB_UNDERLINE_INACTIVE" value="{borderSubtle}"/>
     <option name="TEARLINE_COLOR" value="{highlightActive}"/>
@@ -101,6 +90,7 @@
     <option name="WHITESPACES" value="{textDisabled}"/>
     <option name="WHITESPACES_MODIFIED_LINES_COLOR" value="{textDisabled}"/>
   </colors>
+
   <attributes>
     <option name="ABSTRACT_CLASS_NAME_ATTRIBUTES">
       <value>
