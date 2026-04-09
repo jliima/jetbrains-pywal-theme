@@ -1,43 +1,62 @@
 # JetBrains Pywal Theme — Copilot Instructions
 
 ## Project overview
-This project provides a dynamic pywal-integrated theme for all JetBrains IDEs. It consists of two components:
-1. **Editor color scheme** (`pywal_color_scheme.icls`) — pywal template for syntax highlighting
-2. **UI theme** (`pywal_ui_theme.json`) — pywal template for the IDE chrome/UI
+This project provides a dynamic pywal-integrated theme for all JetBrains IDEs. It colors both the editor (syntax highlighting) and the IDE UI chrome. Colors are driven by a pywal colorscheme and applied without restarting the IDE via a bundled reload plugin.
 
-See `architecture.md` for detailed system design and `theme-variables.md` for the variable reference.
+Two separate plugins are deployed to each IDE:
+1. **`pywal-theme.jar`** — the UI theme plugin (Look and Feel)
+2. **`pywal-reload-plugin-1.0.0.jar`** — the live reload plugin (HTTP server)
 
-## Pywal integration
-- This project follows the pywal workflow described in `~/dotfiles/.copilot/instructions.pywal.md`
-- Pywal colorscheme: `~/dotfiles/.config/wal/colorschemes/dark/parecolors.json`
-- Pywal templates in this project are copied to `~/dotfiles/.config/wal/templates/`
-- The IntelliJ application script lives at `~/dotfiles/scripts/pywal/applications/intellij.sh`
-
-## Template syntax
-- `{varName}` — pywal variable, produces the hex color WITH `#` prefix (e.g. `{syntaxKeyword}` → `#0bde96`)
-- Since IntelliJ ICLS files use hex WITHOUT `#`, the application script strips the `#` via sed
-- Pywal escapes: use `{{` for literal `{` if ever needed
-- For the UI theme JSON, `#RRGGBB` with `#` is expected, so no stripping needed
+See `architecture.md` for the full system design and `theme-variables.md` for the variable reference.
 
 ## Key files
-- `pywal_color_scheme.icls` — pywal template for the editor color scheme (has `{varName}` placeholders)
-- `pywal_color_scheme.icls.backup` — original hand-crafted color scheme before templating
-- `pywal_ui_theme.json` — pywal template for the UI theme JSON
-- `scripts/generate-template.py` — dev tool to (re)generate the ICLS template from the backup
-- `scripts/build-jar.sh` — packages the theme into a plugin JAR
 
-## Deployment
-The application script (`intellij.sh`) handles:
-1. ICLS: strips `#`, copies to `~/.config/JetBrains/*/colors/pare-colors.icls` for every installed IDE
-2. UI theme: copies JSON into JAR, deploys JAR to `~/.local/share/JetBrains/*/pare-colors.jar`
-3. No plugin rebuild needed for the ICLS — IDEs read it directly from their colors/ dir
+| File | Purpose |
+|---|---|
+| `pywal_color_scheme.icls` | Editor color scheme template — `{varName}` placeholders |
+| `theme/ui-mapping.json` | Maps IntelliJ UI keys to palette variable names; also contains theme metadata |
+| `scripts/build-icls.py` | Substitutes `{varName}` in ICLS template with bare hex from `colors.json` |
+| `scripts/build-theme-json.py` | Combines `colors.json` + `ui-mapping.json` → full IntelliJ theme JSON |
+| `scripts/generate-template.py` | One-time dev tool to (re)generate the ICLS template |
+| `assets/META-INF/plugin.xml` | Static plugin metadata for the theme JAR |
+| `reload-plugin/` | Kotlin/Gradle project for the live reload plugin |
 
-## Adding new syntax variables
-If a new `syntax*` variable is needed, add it to `parecolors.json` under the `special` section,
-choose a value from the existing palette colors, then update the template accordingly.
-Only add variables that are universal across languages (not language-specific accents).
+## Color source
+- Pywal colorscheme: `~/dotfiles/.config/wal/colorschemes/dark/parecolors.json`
+- At apply-time, pywal writes `~/.cache/wal/colors.json` — this is what the build scripts read
+- The application script is: `~/dotfiles/scripts/pywal/applications/intellij.sh`
+
+## Template syntax (ICLS)
+- `{varName}` — replaced with a bare 6-digit hex value (no `#`) from `colors.json`
+- Variable names come from `special.*` keys in `colors.json` (e.g. `{syntaxKeyword}`, `{blue5}`)
+- ICLS format requires hex WITHOUT `#` — `build-icls.py` strips it via `.lstrip("#")`
+
+## UI mapping syntax (ui-mapping.json)
+- Values are variable names (strings) from `colors.json` — **not** hex values
+- The `build-theme-json.py` script expands them into a `colors` section in the final JSON
+- IntelliJ theme JSON references named colors; the build script handles translation
+- Nested objects represent IntelliJ's nested UI key namespacing (e.g. `"Borders": { "color": "border" }`)
+- Non-color values (integers, booleans) are passed through as-is
+
+## Live reload
+The reload plugin starts an HTTP server on `localhost:9988` when any JetBrains IDE starts.
+
+```
+POST http://localhost:9988/reload
+```
+
+`intellij.sh` calls this after deploying files. The plugin reads `~/.cache/wal/colors.json`
+and the project files directly (hardcoded to `~/JetBrainsProjects/jetbrains-pywal-theme/`)
+to rebuild and apply both the UI theme and editor scheme in-process without restart.
+
+## Adding new variables
+- **New syntax variable**: add to `parecolors.json` under `special`, choose a color from the existing
+  `colorN` / `redN` / `blueN` etc. palette, update `pywal_color_scheme.icls` template.
+- **New UI variable**: add it to `theme/ui-mapping.json`. The variable must exist in `colors.json`
+  (either `special.*` or `colors.color0-15`).
+- Only add universally applicable variables — not language-specific ones.
 
 ## Code style
-- Use 2 spaces for indentation.
-- Use camelCase for variable and function names.
-- Use maximum line length of 120 characters.
+- 2-space indentation in JSON and Python.
+- camelCase for variable and function names.
+- Max line length 120 characters.

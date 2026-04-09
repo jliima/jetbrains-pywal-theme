@@ -15,7 +15,6 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        // Target the oldest supported version installed on this machine
         intellijIdeaUltimate("2026.1")
     }
 }

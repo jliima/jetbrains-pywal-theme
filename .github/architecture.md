@@ -3,82 +3,117 @@
 ## System overview
 
 ```
-parecolors.json          pywal templates           ~/.cache/wal/                JetBrains IDEs
-(colorscheme)  ──wal──►  colors-intellij.icls  ──► colors-intellij.icls  ──┐
-                          colors-intellij-       ──► colors-intellij-        │  intellij.sh
-                          theme.json                 theme.json           ──┘  (app script)
-                                                                                     │
-                                                                     ┌───────────────┴──────────────────┐
-                                                                     ▼                                  ▼
-                                                   ~/.config/JetBrains/*/colors/    ~/.local/share/JetBrains/*/
-                                                   pare-colors.icls                pare-colors.jar
-                                                   (editor color scheme)           (UI theme plugin)
+parecolors.json           pywal                ~/.cache/wal/
+(colorscheme)   ──wal──►  (run-pywal.py)  ──►  colors.json
+                                │
+                                ▼
+                         intellij.sh  (application script)
+                                │
+              ┌─────────────────┼──────────────────────┐
+              │                 │                       │
+              ▼                 ▼                       ▼
+     build-icls.py      build-theme-json.py      (jar packaging)
+     + pywal_color_      + ui-mapping.json
+       scheme.icls
+              │                 │                       │
+              ▼                 ▼                       ▼
+  pywal-color-scheme.icls   pywal.theme.json    pywal-theme.jar
+  (processed, no #)         (full theme JSON)   (UI theme plugin)
+              │                                         │
+              ▼                                         ▼
+  ~/.config/JetBrains/          ~/.local/share/JetBrains/
+  <IDE>/colors/                 <IDE>/pywal/lib/
+  pywal-color-scheme.icls       pywal-theme.jar
+
+                         + POST localhost:9988/reload
+                           (live reload via reload plugin)
 ```
 
 ## Components
 
 ### 1. Pywal colorscheme (`~/dotfiles/.config/wal/colorschemes/dark/parecolors.json`)
-The source of all colors. Contains:
-- `colors.color0`–`color15` — 16-color terminal palette
+The source of all colors. After running `wal --theme parecolors`, pywal writes:
+- `~/.cache/wal/colors.json` — all palette colors in a structured JSON
+
+`colors.json` structure:
 - `special.background`, `foreground`, `cursor` — basic terminal colors
-- `special.syntaxKeyword`, `syntaxString`, etc. — semantic syntax colors
+- `special.syntaxKeyword`, `syntaxString`, etc. — semantic syntax variables
 - `special.backgroundAlt`, `surface`, `overlay`, etc. — UI surface colors
 - `special.accent`, `accentHover`, `selection`, etc. — interactive colors
-- `special.success`, `warning`, `error`, `info` — status colors
+- `special.red1`–`red5`, `green1`–`green5`, `blue1`–`blue5`, `yellow1`–`yellow5`, `grey1`–`grey5` — palette ramps
+- `colors.color0`–`color15` — 16-color terminal palette
 
-### 2. ICLS pywal template (`pywal_color_scheme.icls`)
-The editor color scheme template. Contains `{varName}` placeholders for every color value.
-Pywal replaces these with `#RRGGBB` values; the application script then strips the `#` since
-IntelliJ's ICLS format uses bare 6-digit hex.
+### 2. Editor color scheme template (`pywal_color_scheme.icls`)
+The editor color scheme with `{varName}` placeholders for every color value. Processed by
+`scripts/build-icls.py` at apply-time, which substitutes each `{varName}` with a bare 6-digit
+hex value (no `#`) from `colors.json`.
 
-Inherits from `Darcula` (parent scheme). Language-specific entries in the template override defaults.
+Inherits from `Darcula`. Language-specific entries override defaults. Colors cover:
+- Syntax highlighting (keywords, strings, comments, types, etc.)
+- VCS/git status colors (`FILESTATUS_*`, gutter diff bars)
+- Editor chrome (gutter, caret, selection, indent guides, etc.)
 
-### 3. UI theme template (`pywal_ui_theme.json`)
-A JSON template for the IntelliJ LaF (Look and Feel) theme. Uses `{varName}` placeholders
-that pywal replaces with `#RRGGBB` values. No `#` stripping needed for JSON theme files.
+### 3. UI theme mapping (`theme/ui-mapping.json`)
+Static JSON that maps IntelliJ UI key paths to palette variable names. Also contains
+theme metadata (`name`, `dark`, `editorScheme`, `author`).
 
-The JSON is bundled into a JAR plugin (`pare-colors.jar`) alongside `plugin.xml` and
-`pluginIcon.svg`. This JAR is what IntelliJ loads as the UI theme plugin.
+`build-theme-json.py` combines this with `colors.json` to produce the full theme JSON:
+- A `colors` section is built from the entire `colors.json` palette (name → `#hex`)
+- The `ui` section is taken directly from `ui-mapping.json` (values reference the color names)
+- IntelliJ resolves the references at theme load time
+
+Editing `ui-mapping.json` is enough to change which UI element uses which color — no
+pywal re-run is required, and live reload will pick up the change immediately.
 
 ### 4. Application script (`~/dotfiles/scripts/pywal/applications/intellij.sh`)
-Runs after `wal --theme parecolors`. It:
-1. Takes `~/.cache/wal/colors-intellij.icls` and strips `#` from hex values
-2. Copies the processed ICLS to every `~/.config/JetBrains/*/colors/pare-colors.icls`
-3. Packages `~/.cache/wal/colors-intellij-theme.json` + static assets into `pare-colors.jar`
-4. Copies the JAR to every `~/.local/share/JetBrains/*/pare-colors.jar`
+Orchestrates the full deployment after `wal --theme parecolors` runs:
 
-### 5. JAR plugin structure
+1. **Build ICLS**: runs `build-icls.py` → processes `pywal_color_scheme.icls` template
+2. **Deploy ICLS**: copies to `~/.config/JetBrains/*/colors/pywal-color-scheme.icls`
+3. **Build theme JSON**: runs `build-theme-json.py` → full IntelliJ theme JSON
+4. **Build JAR**: packages `plugin.xml` + theme JSON + ICLS into `pywal-theme.jar`
+5. **Deploy JAR**: copies to `~/.local/share/JetBrains/*/pywal/lib/pywal-theme.jar`
+6. **Deploy reload plugin**: copies built JAR to `~/.local/share/JetBrains/*/pywal-reload-plugin/lib/`
+7. **Trigger live reload**: `POST localhost:9988/reload`
+
+### 5. Theme JAR plugin structure
 ```
-pare-colors.jar
+pywal-theme.jar
 ├── META-INF/
 │   ├── MANIFEST.MF
-│   ├── plugin.xml        (references /theme/parecolors.theme.json)
+│   ├── plugin.xml          (references /theme/pywal.theme.json)
 │   └── pluginIcon.svg
 └── theme/
-    ├── parecolors.theme.json   (UI theme, references editorScheme "pare-colors")
-    └── pare-colors.icls        (bundled fallback; live copy is in colors/ dir)
+    ├── pywal.theme.json    (full UI theme, built at apply-time)
+    └── pywal-color-scheme.icls  (processed ICLS, bundled as fallback)
 ```
 
-## IntelliJ theme loading
-- **Color scheme** (ICLS): IntelliJ reads directly from `~/.config/JetBrains/<IDE>/colors/`
-  at startup. Updating this file and restarting the IDE applies the new scheme immediately.
-- **UI theme** (JAR): IntelliJ loads theme plugins from `~/.local/share/JetBrains/<IDE>/`
-  at startup. The JAR must be re-packaged and the IDE restarted for UI changes to apply.
+Installed at: `~/.local/share/JetBrains/<IDE>/pywal/lib/pywal-theme.jar`
+
+### 6. Live reload plugin (`reload-plugin/`)
+A Kotlin/Gradle IntelliJ plugin that enables theme changes without IDE restart.
+
+- On IDE start: `PywalReloadStartupActivity` launches `PywalReloadServer`
+- `PywalReloadServer` listens on `localhost:9988` (Java `HttpServer`)
+- On `POST /reload`: `ThemeReloader` reads `~/.cache/wal/colors.json` and the project
+  templates directly, builds the theme in-memory, and applies it via IntelliJ platform APIs:
+  - `UITheme.loadTempThemeFromJson()` + `QuickChangeLookAndFeel.switchLafAndUpdateUI()` — UI
+  - `EditorColorsSchemeImpl.readExternal()` + `EditorColorsManager.setGlobalScheme()` — editor
+
+Plugin ID: `com.github.jliima.pywal.reload`  
+Built with: IntelliJ Platform Gradle Plugin 2.13.1, Kotlin 2.3.0, target 2026.1 (`sinceBuild=261`)  
+Installed at: `~/.local/share/JetBrains/<IDE>/pywal-reload-plugin/lib/pywal-reload-plugin-1.0.0.jar`
 
 ## Applying the theme
-```bash
+```shell
+# Run pywal + deploy theme to all IDEs
 python3 ~/dotfiles/scripts/pywal/run-pywal.py --theme parecolors --app intellij
-```
-Or for all apps:
-```bash
-python3 ~/dotfiles/scripts/pywal/run-pywal.py --theme parecolors
+
+# Trigger live reload in a running IDE (without pywal re-run)
+curl -X POST http://localhost:9988/reload
 ```
 
-## Live reload status
-- **Editor scheme**: Requires IDE restart (or File > Invalidate Caches)
-- **UI theme**: Requires IDE restart
-- Dynamic plugin loading for UI themes is complex; a restart approach is used for reliability
-
-## IDE version support
-The plugin's `plugin.xml` targets `since-build="242"` (IntelliJ 2024.2+).
-The application script targets all IDE installations found in `~/.local/share/JetBrains/`.
+## IDE compatibility
+- Theme plugin: `since-build="261"` (IntelliJ 2026.1+)
+- The application script targets all IDE installations found under `~/.local/share/JetBrains/`
+- Tested IDEs: IntelliJIdea, PyCharm, WebStorm, Rider, DataGrip, GoLand
