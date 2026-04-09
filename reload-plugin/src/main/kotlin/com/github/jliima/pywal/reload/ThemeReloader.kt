@@ -2,7 +2,6 @@ package com.github.jliima.pywal.reload
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TextNode
 import com.intellij.ide.actions.QuickChangeLookAndFeel
 import com.intellij.ide.ui.LafManager
 import com.intellij.ide.ui.UITheme
@@ -20,10 +19,14 @@ object ThemeReloader {
     private val log = thisLogger()
     private val mapper = ObjectMapper()
 
-    // Path to the ui-mapping.json in the project
+    // Paths to project source files
     private val mappingFile = File(
         System.getProperty("user.home"),
         "JetBrainsProjects/jetbrains-pywal-theme/theme/ui-mapping.json"
+    )
+    private val iclsTemplate = File(
+        System.getProperty("user.home"),
+        "JetBrainsProjects/jetbrains-pywal-theme/pywal_color_scheme.icls"
     )
 
     fun reload(): Result<String> = runCatching {
@@ -59,41 +62,64 @@ object ThemeReloader {
     }
 
     private fun reloadEditorScheme(): String? {
-        val configPath = PathManager.getConfigPath()
-        val iclsFile = File(configPath, "colors/pywal-color-scheme.icls")
-        if (!iclsFile.exists()) {
-            log.warn("ICLS not found: $iclsFile")
-            return "ICLS missing"
+        val colorsFile = File(System.getProperty("user.home"), ".cache/wal/colors.json")
+        if (!colorsFile.exists()) {
+            log.warn("colors.json not found: $colorsFile")
+            return "colors.json missing"
+        }
+        if (!iclsTemplate.exists()) {
+            log.warn("ICLS template not found: $iclsTemplate")
+            return "ICLS template missing"
         }
 
+        // Build the processed ICLS by substituting {varName} with bare hex values
+        val palette = buildPalette(colorsFile, stripHash = true)
+        val processed = iclsTemplate.readText()
+            .replace(Regex("""\{(\w+)\}""")) { match ->
+                palette[match.groupValues[1]] ?: match.value
+            }
+
+        // Write processed ICLS to the IDE config colors directory
+        val configPath = PathManager.getConfigPath()
+        val outputIcls = File(configPath, "colors/pywal-color-scheme.icls")
+        outputIcls.parentFile.mkdirs()
+        outputIcls.writeText(processed)
+
+        // Load and apply the scheme
         val colorsManager = EditorColorsManager.getInstance()
         val parentScheme = colorsManager.getScheme("Darcula")
             ?: colorsManager.allSchemes.firstOrNull()
             ?: return "no parent scheme available"
         val scheme = EditorColorsSchemeImpl(parentScheme)
-
-        val element = JDOMUtil.load(iclsFile)
-        scheme.readExternal(element)
+        scheme.readExternal(JDOMUtil.load(outputIcls))
 
         colorsManager.addColorScheme(scheme)
         colorsManager.setGlobalScheme(scheme)
-        log.info("Pywal editor scheme reloaded from $iclsFile")
+        log.info("Pywal editor scheme reloaded from $iclsTemplate")
         return "editor scheme reloaded"
     }
 
     /**
+     * Builds a flat color palette from colors.json.
+     * @param stripHash if true, returns bare hex (for ICLS); if false, keeps # (for theme JSON)
+     */
+    private fun buildPalette(colorsFile: File, stripHash: Boolean = false): Map<String, String> {
+        val root = mapper.readTree(colorsFile)
+        val palette = mutableMapOf<String, String>()
+        root.get("special")?.fields()?.forEach { (k, v) ->
+            palette[k] = if (stripHash) v.asText().removePrefix("#") else v.asText()
+        }
+        root.get("colors")?.fields()?.forEach { (k, v) ->
+            palette[k] = if (stripHash) v.asText().removePrefix("#") else v.asText()
+        }
+        return palette
+    }
+
+    /**
      * Combines colors.json palette with ui-mapping.json to produce a full IntelliJ theme JSON.
-     * The mapping's ui/icons sections reference color variable names (e.g. "border", "accent")
-     * which are resolved from the palette into a `colors` section.
      */
     private fun buildThemeJson(colorsFile: File, mappingFile: File): String {
-        // Build flat palette: name → #hex from special.* and colors.*
-        val colorsRoot = mapper.readTree(colorsFile)
-        val palette = mutableMapOf<String, String>()
-        colorsRoot.get("special")?.fields()?.forEach { (k, v) -> palette[k] = v.asText() }
-        colorsRoot.get("colors")?.fields()?.forEach { (k, v) -> palette[k] = v.asText() }
-
-        // Load mapping (contains name, dark, editorScheme, ui, icons)
+        val palette = buildPalette(colorsFile)
         val mapping = mapper.readTree(mappingFile) as ObjectNode
 
         // Build colors section from full palette
