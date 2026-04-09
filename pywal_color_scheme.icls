@@ -172,7 +172,7 @@
     </option>
     <option name="BOOKMARKS_ATTRIBUTES">
       <value>
-        <option name="BACKGROUND" value="{syntaxString}"/>
+        <option name="BACKGROUND" value="{magenta2}"/>
         <option name="FONT_TYPE" value="1"/>
         <option name="ERROR_STRIPE_COLOR" value="{textSecondary}"/>
       </value>
