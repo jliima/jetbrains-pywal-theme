@@ -1,0 +1,20 @@
+<idea-plugin>
+  <id>com.github.jliima.pywal.reload</id>
+  <name>Pywal Theme Reloader</name>
+  <version>1.0.0</version>
+  <vendor url="https://github.com/jliima">jliima</vendor>
+
+  <description><![CDATA[
+    Listens for pywal theme updates and reloads the Pywal UI theme and editor
+    color scheme without requiring an IDE restart.
+
+    Exposes a local HTTP endpoint: POST http://localhost:9988/reload
+    Called automatically by the pywal intellij application script.
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <postStartupActivity implementation="com.github.jliima.pywal.reload.PywalReloadStartupActivity"/>
+  </extensions>
+</idea-plugin>

@@ -1,0 +1,15 @@
+package com.github.jliima.pywal.reload
+
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectActivity
+
+class PywalReloadStartupActivity : ProjectActivity {
+    override suspend fun execute(project: Project) {
+        try {
+            PywalReloadServer.start()
+        } catch (e: Exception) {
+            thisLogger().warn("Pywal reload server failed to start: ${e.message}")
+        }
+    }
+}
