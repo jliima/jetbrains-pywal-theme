@@ -17,6 +17,7 @@ See `architecture.md` for the full system design and `theme-variables.md` for th
 | `theme/ui-mapping.json` | Maps IntelliJ UI keys to palette variable names; also contains theme metadata |
 | `scripts/build-icls.py` | Substitutes `{varName}` in ICLS template with bare hex from `colors.json` |
 | `scripts/build-theme-json.py` | Combines `colors.json` + `ui-mapping.json` → full IntelliJ theme JSON |
+| `scripts/diff-color-changes.py` | Compares resolved template against an edited ICLS to find color changes |
 | `scripts/generate-template.py` | One-time dev tool to (re)generate the ICLS template |
 | `assets/META-INF/plugin.xml` | Static plugin metadata for the theme JAR |
 | `reload-plugin/` | Kotlin/Gradle project for the live reload plugin |
@@ -60,3 +61,49 @@ to rebuild and apply both the UI theme and editor scheme in-process without rest
 - 2-space indentation in JSON and Python.
 - camelCase for variable and function names.
 - Max line length 120 characters.
+
+## Updating the template from a hand-edited ICLS
+
+When the user tweaks colors manually in the JetBrains IDE (or exports a modified `.icls`),
+use `scripts/diff-color-changes.py` to find what changed and update `pywal_color_scheme.icls`.
+
+### Workflow
+
+1. **Run the diff script** against the edited file:
+   ```bash
+   python3 scripts/diff-color-changes.py <path-to-edited.icls>
+   ```
+
+2. **Read the output** — it has three sections:
+
+   - **VALUE CHANGES** — options where the hex value differs. The output shows:
+     - `template:` the current `{varName}` placeholder and its resolved hex
+     - `edited:` the target hex from the edited file
+     - `candidates:` palette variables matching the target hex, sorted by semantic relevance (best first)
+   - **REMOVE FROM TEMPLATE** — option blocks present in the template but missing from the edited file.
+     Delete the entire `<option>...</option>` block for each listed entry.
+   - **ADD TO TEMPLATE** — option blocks in the edited file but not in the template.
+     Add them in alphabetical order within the correct section (`<colors>` or `<attributes>`),
+     using `{varName}` placeholders. Candidate variables are listed for each hex value.
+
+3. **Choose the best variable** for each change. The first candidate is usually best, but use judgment:
+   - Prefer semantic names (`syntaxFunction`, `accent`, `foreground`) over raw color names (`blue5`, `color4`)
+   - Pick variables that describe the *purpose* of the color in context
+     (e.g. `{accent}` for markdown headers, `{syntaxString}` for link URLs)
+   - If no candidate fits semantically, consider adding a new variable to `parecolors.json`
+
+4. **Apply changes** to `pywal_color_scheme.icls` using `{varName}` placeholder syntax (not raw hex).
+
+5. **Verify** by re-running the diff script — it should report "No differences found."
+
+### Example commands
+
+```bash
+# Diff against a hand-edited file in the project
+python3 scripts/diff-color-changes.py pywal_color_scheme_käsin_paranneltu.icls
+
+# Diff against the currently installed scheme in IntelliJ (should show no changes
+# right after a pywal update, since the installed file is built from the template)
+python3 scripts/diff-color-changes.py \
+    ~/.config/JetBrains/IntelliJIdea2026.1/colors/pywal-color-scheme.icls
+```

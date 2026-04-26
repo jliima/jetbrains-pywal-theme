@@ -438,6 +438,12 @@
         <option name="FOREGROUND" value="{green3}"/>
       </value>
     </option>
+    <option name="DEFAULT_ATTRIBUTE">
+      <value>
+        <option name="FOREGROUND" value="{syntaxAnnotation}"/>
+        <option name="EFFECT_TYPE" value="5"/>
+      </value>
+    </option>
     <option name="DEFAULT_BLOCK_COMMENT">
       <value>
         <option name="FOREGROUND" value="{syntaxComment}"/>
@@ -525,7 +531,7 @@
     </option>
     <option name="DEFAULT_INSTANCE_FIELD">
       <value>
-        <option name="FOREGROUND" value="{syntaxVariable}"/>
+        <option name="FOREGROUND" value="{syntaxFunction}"/>
         <option name="EFFECT_TYPE" value="5"/>
       </value>
     </option>
@@ -547,7 +553,7 @@
     </option>
     <option name="DEFAULT_KEYWORD">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{yellow5}"/>
       </value>
     </option>
     <option name="DEFAULT_LABEL">
@@ -1162,20 +1168,9 @@
         <option name="FOREGROUND" value="{syntaxNumber}"/>
       </value>
     </option>
-    <option name="JSON.PROPERTY_KEY">
-      <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
-        <option name="EFFECT_TYPE" value="5"/>
-      </value>
-    </option>
     <option name="JUPYTER_SELECTED_CELL">
       <value>
         <option name="BACKGROUND" value="{highlightActive}"/>
-      </value>
-    </option>
-    <option name="KOTLIN_ANNOTATION">
-      <value>
-        <option name="FOREGROUND" value="{syntaxType}"/>
       </value>
     </option>
     <option name="KOTLIN_ARROW">
@@ -1245,12 +1240,6 @@
     </option>
     <option name="KOTLIN_SMART_CONSTANT">
       <value/>
-    </option>
-    <option name="KOTLIN_TYPE_PARAMETER">
-      <value>
-        <option name="FOREGROUND" value="{syntaxType}"/>
-        <option name="FONT_TYPE" value="2"/>
-      </value>
     </option>
     <option name="LABEL">
       <value>
@@ -1421,12 +1410,6 @@
         <option name="FOREGROUND" value="{syntaxVariable}"/>
       </value>
     </option>
-    <option name="MARKDOWN_AUTO_LINK">
-      <value>
-        <option name="FOREGROUND" value="{syntaxDocTag}"/>
-        <option name="EFFECT_TYPE" value="1"/>
-      </value>
-    </option>
     <option name="MARKDOWN_BLOCK_QUOTE">
       <value>
         <option name="FOREGROUND" value="{syntaxKeyword}"/>
@@ -1445,19 +1428,17 @@
         <option name="FONT_TYPE" value="1"/>
       </value>
     </option>
-    <option name="MARKDOWN_BOLD_MARKER">
-      <value>
-        <option name="FOREGROUND" value="{syntaxComment}"/>
-        <option name="FONT_TYPE" value="1"/>
-      </value>
-    </option>
     <option name="MARKDOWN_CODE_BLOCK">
       <value>
-        <option name="FOREGROUND" value="{syntaxFunction}"/>
+        <option name="FOREGROUND" value="{foreground}"/>
+        <option name="BACKGROUND" value="{backgroundAlt}"/>
       </value>
     </option>
     <option name="MARKDOWN_CODE_FENCE">
-      <value/>
+      <value>
+        <option name="FOREGROUND" value="{foreground}"/>
+        <option name="BACKGROUND" value="{backgroundAlt}"/>
+      </value>
     </option>
     <option name="MARKDOWN_CODE_SPAN">
       <value>
@@ -1478,44 +1459,39 @@
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_1">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_2">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_3">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
         <option name="EFFECT_TYPE" value="4"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_4">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
         <option name="EFFECT_TYPE" value="4"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_5">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
         <option name="EFFECT_TYPE" value="4"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_LEVEL_6">
       <value>
-        <option name="FOREGROUND" value="{syntaxKeyword}"/>
+        <option name="FOREGROUND" value="{accent}"/>
         <option name="EFFECT_TYPE" value="4"/>
       </value>
     </option>
     <option name="MARKDOWN_HEADER_MARKER">
-      <value>
-        <option name="FOREGROUND" value="{syntaxComment}"/>
-      </value>
-    </option>
-    <option name="MARKDOWN_HRULE">
       <value>
         <option name="FOREGROUND" value="{syntaxComment}"/>
       </value>
@@ -1550,7 +1526,7 @@
     </option>
     <option name="MARKDOWN_LINK_DESTINATION">
       <value>
-        <option name="FOREGROUND" value="{syntaxDocTag}"/>
+        <option name="FOREGROUND" value="{syntaxString}"/>
       </value>
     </option>
     <option name="MARKDOWN_LINK_LABEL">
@@ -2891,6 +2867,11 @@
         <option name="FOREGROUND" value="{syntaxFunction}"/>
         <option name="EFFECT_COLOR" value="{syntaxFunction}"/>
         <option name="EFFECT_TYPE" value="1"/>
+      </value>
+    </option>
+    <option name="REGEXP.REDUNDANT_ESCAPE">
+      <value>
+        <option name="FOREGROUND" value="{syntaxComment}"/>
       </value>
     </option>
     <option name="REST.FIXED">
