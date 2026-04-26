@@ -88,6 +88,10 @@ def extract_template_variables(xml_text: str) -> dict[str, str]:
   if attrs_elem is not None:
     for opt in attrs_elem.findall("option"):
       attr_name = opt.get("name", "")
+      base_attr = opt.get("baseAttributes")
+      if base_attr is not None:
+        variables[f"attributes/{attr_name}/@baseAttributes"] = base_attr
+        continue
       value_elem = opt.find("value")
       if value_elem is None:
         continue
@@ -117,6 +121,10 @@ def extract_color_options(xml_text: str) -> dict[str, str]:
   if attrs_elem is not None:
     for opt in attrs_elem.findall("option"):
       attr_name = opt.get("name", "")
+      base_attr = opt.get("baseAttributes")
+      if base_attr is not None:
+        options[f"attributes/{attr_name}/@baseAttributes"] = base_attr
+        continue
       value_elem = opt.find("value")
       if value_elem is None:
         continue
